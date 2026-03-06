@@ -45,33 +45,26 @@ public class SpeedrunTimer : MonoBehaviour
 
         if (countdownMode && currentTime <= 0f)
         {
+            // Timer expired -> stop and mark ended
             currentTime = 0f;
             isRunning = false;
             timerEnded = true;
 
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-            Debug.Log("Ihan noobi");
-
+            // If startBlocker is enabled, remove configured objects before reload (optional behavior)
             if (startBlocker)
             {
-                // Implement start blocker logic here
-                Debug.Log("Timer ended. Start Blocker activated.");
-                
-                isRunning = true;
-                currentTime = startSeconds;
-                countdownMode = false;
-                startSeconds = 0f;
-
+                Debug.Log("Timer ended. Start Blocker is active — removing configured objects before reload.");
                 foreach (GameObject obj in objectsToRemove)
                 {
                     if (obj != null)
                         Destroy(obj);
                 }
-                ResetTimer();
-
             }
-        }
 
+            // Reload the current scene to "reset" the level
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            Debug.Log("SpeedrunTimer: Scene reloaded because timer reached zero.");
+        }
 
         UpdateUI();
     }

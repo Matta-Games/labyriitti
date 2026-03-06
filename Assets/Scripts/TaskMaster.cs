@@ -3,7 +3,6 @@ using TMPro;
 using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 public class Taskmaster : MonoBehaviour
 {
@@ -11,8 +10,6 @@ public class Taskmaster : MonoBehaviour
     public class Objective
     {
         public string text;
-        public List<Key> requiredKeys;           // Keys that must be pressed
-        [HideInInspector] public HashSet<Key> pressedKeys = new HashSet<Key>();
         [HideInInspector] public bool completed = false;
     }
 
@@ -32,28 +29,21 @@ public class Taskmaster : MonoBehaviour
     {
         if (index >= objectives.Count) return;
 
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return;
+        var gamepad = Gamepad.current;
+        if (gamepad == null) return; // only accept input from a connected gamepad
 
-        Objective obj = objectives[index];
-        bool changed = false;
-
-        foreach (Key key in obj.requiredKeys)
+        // B on Xbox controllers maps to buttonEast in the Input System.
+        // Pressing B completes the current objective.
+        if (gamepad.buttonEast.wasPressedThisFrame)
         {
-            if (keyboard[key].wasPressedThisFrame)
+            Objective obj = objectives[index];
+            if (!obj.completed)
             {
-                if (obj.pressedKeys.Add(key)) // only add if not already pressed
-                    changed = true;
+                obj.completed = true;
+                // update the UI immediately so player sees feedback
+                uiText.text = GenerateDisplayText(obj);
             }
         }
-
-        // Mark objective as completed if all required keys pressed
-        if (obj.pressedKeys.Count == obj.requiredKeys.Count)
-            obj.completed = true;
-
-        // Update TMP text only if keys pressed changed
-        if (changed)
-            uiText.text = GenerateDisplayText(obj);
     }
 
     IEnumerator RunTutorial()
@@ -61,7 +51,6 @@ public class Taskmaster : MonoBehaviour
         while (index < objectives.Count)
         {
             Objective obj = objectives[index];
-            obj.pressedKeys.Clear();
             obj.completed = false;
 
             // Typewriter effect for the objective text
@@ -72,10 +61,10 @@ public class Taskmaster : MonoBehaviour
                 yield return new WaitForSeconds(typeSpeed);
             }
 
-            // Add initial key display after typewriter finishes
+            // Show instruction to press B
             uiText.text = GenerateDisplayText(obj);
 
-            // Wait until objective is completed
+            // Wait until objective is completed (B pressed)
             yield return new WaitUntil(() => obj.completed);
 
             // Strike-through when completed
@@ -86,31 +75,10 @@ public class Taskmaster : MonoBehaviour
         }
     }
 
-    // Generates the display text with pressed/unpressed keys using your palette
+    // Generates the display text with an instruction to press B
     private string GenerateDisplayText(Objective obj)
     {
-        var keysDisplay = obj.requiredKeys
-            .Select(k => obj.pressedKeys.Contains(k)
-                ? $"<color=#FB8B24>{KeyToDisplay(k)}</color>"   // pressed = orange
-                : $"<color=#FFE8D6>{KeyToDisplay(k)}</color>"); // unpressed = cream
-
-        return $"{obj.text}\nKeys: {string.Join(" ", keysDisplay)}";
-    }
-
-    // Maps keys to display-friendly names
-    private string KeyToDisplay(Key key)
-    {
-        switch (key)
-        {
-            case Key.W: return "W";
-            case Key.A: return "A";
-            case Key.S: return "S";
-            case Key.D: return "D";
-            case Key.R: return "R";
-            case Key.Space: return "Space";
-            case Key.LeftShift: return "Left Shift";
-
-            default: return key.ToString(); // fallback
-        }
+        // Use simple palette: pressed B will immediately change to strike-through in RunTutorial
+        return $"{obj.text}\n\n<color=#FFE8D6>Press <color=#FB8B24>B</color> to continue</color>";
     }
 }
