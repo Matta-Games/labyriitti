@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro; // Remove if not using TMP
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class SpeedrunTimer : MonoBehaviour
 {
@@ -47,6 +48,9 @@ public class SpeedrunTimer : MonoBehaviour
             currentTime = 0f;
             isRunning = false;
             timerEnded = true;
+
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            Debug.Log("Ihan noobi");
 
             if (startBlocker)
             {
