@@ -1,16 +1,12 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class PlayGame : MonoBehaviour
+public class MainMenu : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    // Call this from the button
+    public void PlayGame()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Replace "GameScene" with the name of your main scene
+        SceneManager.LoadScene("Mr Labtrinth");
     }
 }
